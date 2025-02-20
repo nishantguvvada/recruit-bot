@@ -1,51 +1,48 @@
 from langchain_community.document_loaders.csv_loader import CSVLoader
-import faiss
-from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
+from langchain_mistralai import MistralAIEmbeddings
 from dotenv import load_dotenv
 import os
-import pandas as pd
-from uuid import uuid4
 
 load_dotenv()
 
-
-def vector_db():
+def create_vector_db():
 
     # Function to generate a vector db out of the csv rows
 
-    # loader = CSVLoader(file_path='./resume_data.csv',
-    #     csv_args={
-    #     'delimiter': ',',
-    # })
-    # data = loader.load()
+    loader = CSVLoader(file_path='./test_data.csv',
+        csv_args={
+        'delimiter': ',',
+    })
+    documents = loader.load()
 
-    # print(data)
+    # Character splitting
+    text_splitter=CharacterTextSplitter(separator = "\n", chunk_size=10, chunk_overlap=1)
+    
+    docs=text_splitter.split_documents(documents)
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large", api_key=os.getenv('OPENAI_API_KEY'))
+    print("Subscripting docs[0]: ", docs[0])
 
-    # Read CSV file
-    df = pd.read_csv('resume_data.csv')
+    print("OPENAI_KEY: ", os.getenv('OPENAI_API_KEY'))
 
-    print(df.head(2))
-
-    uuids = [str(uuid4()) for _ in range(len(df))]
-
-    # Initialize FAISS
-    faiss_index = FAISS(
-        embedding_function=embeddings,
-        index=uuids,
-        docstore= InMemoryDocstore(),
-        index_to_docstore_id={}
+    # embeddings = OpenAIEmbeddings(model="text-embedding-3-large", api_key=os.getenv('OPENAI_API_KEY'))
+    embeddings = MistralAIEmbeddings(
+        model='mistral-embed',
+        api_key=os.getenv('MISTRAL_KEY')
     )
 
-    # Process each row
-    for index, row in df.iterrows():
-        text = row[index]
-        embeddings = embeddings.embed_documents([text])
-        faiss_index.from_documents([text], embeddings)
+    vectorstore_faiss=FAISS.from_documents(docs, embeddings)
+    vectorstore_faiss.save_local("faiss_index")
 
-    print("index created!")
+def vector_db():
 
-    return faiss_index
+    embeddings = MistralAIEmbeddings(
+        model='mistral-embed',
+        api_key=os.getenv('MISTRAL_KEY')
+    )
+
+    db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+    
+    return db
