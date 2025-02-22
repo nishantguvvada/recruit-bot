@@ -3,11 +3,12 @@ import uvicorn
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from model import generate_response
+import os
 
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000"
+    os.getenv('FRONTEND_URL')
 ]
 
 app.add_middleware(
