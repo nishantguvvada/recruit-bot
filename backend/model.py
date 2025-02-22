@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-import os
 from vector import vector_db, create_vector_db
 from langchain.tools.retriever import create_retriever_tool
 from langgraph.prebuilt import create_react_agent
