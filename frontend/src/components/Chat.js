@@ -54,7 +54,7 @@ export const Chat = () => {
                 return
             }
 
-            const response = await axios.post("http://localhost:8000/response", {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/response`, {
                 user_input: userInput
             })
 
