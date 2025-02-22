@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 origins = [
-    os.getenv('FRONTEND_URL')
+    f"{os.getenv('FRONTEND_URL')}"
 ]
 
 app.add_middleware(
